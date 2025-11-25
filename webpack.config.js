@@ -1,9 +1,19 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ModuleFederationPlugin = require('webpack/lib/container/ModuleFederationPlugin');
+const webpack = require('webpack');
 const path = require('path');
+const dotenv = require('dotenv');
+const fs = require('fs');
 
 module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production';
+  const envFile = env?.ENV_FILE || `.env.${isProduction ? 'production' : 'development'}`;
+  const envPath = path.resolve(__dirname, envFile);
+  const envConfig = fs.existsSync(envPath) ? dotenv.parse(fs.readFileSync(envPath)) : {};
+  const envKeys = Object.keys(envConfig).reduce((prev, key) => {
+    prev[`process.env.${key}`] = JSON.stringify(envConfig[key]);
+    return prev;
+  }, {});
 
   return {
     entry: './src/index.js',
@@ -42,6 +52,7 @@ module.exports = (env, argv) => {
       ],
     },
     plugins: [
+      new webpack.DefinePlugin(envKeys),
       new ModuleFederationPlugin({
         name: 'defaultModule',
         filename: 'remoteEntry.js',

@@ -39,5 +39,5 @@
   }
 }
 ```
-  - Create the Hosting sites (`firebase hosting:sites:create <site-name>`) if they do not exist.
+-  - Create the Hosting sites (`firebase hosting:sites:create <site-name>`) if they do not exist. Naming convention: production sites `hotcode-module-<module_name>`, test sites `module-<module_name>`; append a random number if Firebase requires uniqueness. But before each command use firebase use with targeted environment.
 - `deploy.sh`: update the final command to use the new target (`firebase deploy --only hosting:my-new-module`). Adjust log text if you rename the module.
