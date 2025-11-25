@@ -11,3 +11,6 @@
 
 ## Collection Naming Convention
 - Any collection created/owned by a module must be named `{moduleName}_{collectionName}` to avoid collisions (e.g., `billing_invoices`, `inventory_items`).
+
+## Firestore Configuration Changes
+- When updating security rules or adding/updating indexes, ensure the corresponding Firestore config files (e.g., rules files, index definitions) are updated to reflect the change.
