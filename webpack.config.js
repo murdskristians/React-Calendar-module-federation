@@ -7,7 +7,7 @@ const fs = require('fs');
 
 module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production';
-  const envFile = env?.ENV_FILE || `.env.${isProduction ? 'production' : 'development'}`;
+  const envFile = env?.ENV_FILE || `.env.${isProduction ? 'production' : 'test'}`;
   const envPath = path.resolve(__dirname, envFile);
   const envConfig = fs.existsSync(envPath) ? dotenv.parse(fs.readFileSync(envPath)) : {};
   const envKeys = Object.keys(envConfig).reduce((prev, key) => {
@@ -17,7 +17,7 @@ module.exports = (env, argv) => {
 
   return {
     entry: './src/index.js',
-    mode: isProduction ? 'production' : 'development',
+    mode: isProduction ? 'production' : 'test',
     devServer: {
       port: 3001,
       hot: true,
@@ -49,12 +49,16 @@ module.exports = (env, argv) => {
             },
           },
         },
+        {
+          test: /\.css$/,
+          use: ['style-loader', 'css-loader', 'postcss-loader'],
+        },
       ],
     },
     plugins: [
       new webpack.DefinePlugin(envKeys),
       new ModuleFederationPlugin({
-        name: 'defaultModule',
+        name: 'documentationModule',
         filename: 'remoteEntry.js',
         exposes: {
           './App': './src/App',

@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "target": "default-module",
+    "target": "documentation-module",
     "public": "dist",
     "ignore": [
       "firebase.json",

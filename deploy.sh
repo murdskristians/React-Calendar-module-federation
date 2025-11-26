@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Deploy default-module to Firebase
+# Deploy documentation-module to Firebase
 # Usage: ./deploy.sh [test|prod]
 
 set -e  # Exit on error
 
-MODULE_NAME="default-module"
+MODULE_NAME="documentation-module"
 TEST_SITE="module-$MODULE_NAME"
 PROD_SITE="hotcode-module-$MODULE_NAME"
 
@@ -60,7 +60,7 @@ firebase use $FIREBASE_ALIAS
 echo ""
 
 # Ensure Hosting site exists for the selected environment
-ensure_site_exists "$HOSTING_SITE"
+# ensure_site_exists "$HOSTING_SITE"
 
 # Build application
 echo "🏗️  Building application ($BUILD_CMD)..."
@@ -69,7 +69,7 @@ echo ""
 
 # Deploy to Firebase
 echo "🚀 Deploying to Firebase Hosting..."
-firebase deploy --only hosting:default-module
+firebase deploy --only hosting:documentation-module
 
 echo ""
 echo "🎉 Deployment to $ENV complete!"
