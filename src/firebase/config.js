@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
-// Firebase configuration
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
@@ -11,25 +11,6 @@ const firebaseConfig = {
   appId: process.env.REACT_APP_FIREBASE_APP_ID
 };
 
-// Check if Firebase is configured
-const isFirebaseConfigured = Object.values(firebaseConfig).every(val => val !== undefined && val !== null);
-
-let app = null;
-let db = null;
-
-if (isFirebaseConfigured) {
-  try {
-    // Initialize Firebase
-    app = initializeApp(firebaseConfig);
-    // Initialize Firestore
-    db = getFirestore(app);
-    console.log('Firebase initialized successfully');
-  } catch (error) {
-    console.error('Error initializing Firebase:', error);
-  }
-} else {
-  console.warn('Firebase not configured. Please add your Firebase credentials to .env file.');
-}
-
-export { db };
-export default app;
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
