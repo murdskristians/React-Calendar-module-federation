@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDocuments } from '../context/DocumentContext';
 import RichTextEditor from './RichTextEditor';
 import ShareDialog from './ShareDialog';
-import { FaEdit, FaSave, FaTimes, FaShare, FaGlobe, FaLock, FaUserFriends, FaFileAlt } from 'react-icons/fa';
+import { FaEdit, FaSave, FaTimes, FaShare, FaGlobe, FaLock, FaFileAlt } from 'react-icons/fa';
 
 const DocumentViewer = () => {
   const {
@@ -34,9 +34,9 @@ const DocumentViewer = () => {
     }
   }, [currentCollection]);
 
-  const handleSaveDocument = () => {
+  const handleSaveDocument = async () => {
     if (currentDocument) {
-      updateDocument(currentDocument.id, {
+      await updateDocument(currentDocument.id, {
         title: editedTitle,
         content: editedContent
       });
@@ -52,9 +52,9 @@ const DocumentViewer = () => {
     }
   };
 
-  const handleSaveCollection = () => {
+  const handleSaveCollection = async () => {
     if (currentCollection) {
-      updateCollection(currentCollection.id, {
+      await updateCollection(currentCollection.id, {
         name: editedCollectionName
       });
       setEditingCollection(false);
@@ -64,7 +64,6 @@ const DocumentViewer = () => {
   const VisibilityBadge = ({ visibility }) => {
     const icons = {
       public: { icon: <FaGlobe />, label: 'Public', className: 'bg-green-100 text-green-700 border-green-200' },
-      shared: { icon: <FaUserFriends />, label: 'Shared', className: 'bg-amber-100 text-amber-700 border-amber-200' },
       private: { icon: <FaLock />, label: 'Private', className: 'bg-gray-100 text-gray-700 border-gray-200' }
     };
 

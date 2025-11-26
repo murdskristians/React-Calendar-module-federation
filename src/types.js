@@ -10,8 +10,7 @@
 //   createdAt: timestamp,
 //   updatedAt: timestamp,
 //   createdBy: string,
-//   visibility: 'private' | 'public' | 'shared',
-//   sharedWith: array of userIds,
+//   visibility: 'private' | 'public',
 //   order: number
 // }
 
@@ -22,14 +21,13 @@
 //   description: string,
 //   icon: string,
 //   createdAt: timestamp,
-//   visibility: 'private' | 'public' | 'shared',
-//   sharedWith: array of userIds
+//   createdBy: string,
+//   visibility: 'private' | 'public'
 // }
 
 export const VISIBILITY_TYPES = {
   PRIVATE: 'private',
-  PUBLIC: 'public',
-  SHARED: 'shared'
+  PUBLIC: 'public'
 };
 
 export const DEFAULT_DOCUMENT = {
@@ -47,7 +45,6 @@ export const DEFAULT_DOCUMENT = {
   updatedAt: null,
   createdBy: null,
   visibility: VISIBILITY_TYPES.PRIVATE,
-  sharedWith: [],
   order: 0
 };
 
@@ -57,6 +54,6 @@ export const DEFAULT_COLLECTION = {
   description: '',
   icon: '📁',
   createdAt: null,
-  visibility: VISIBILITY_TYPES.PRIVATE,
-  sharedWith: []
+  createdBy: null,
+  visibility: VISIBILITY_TYPES.PRIVATE
 };

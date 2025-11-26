@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import { DEFAULT_DOCUMENT, DEFAULT_COLLECTION, VISIBILITY_TYPES } from '../types';
 import {
   collection,
@@ -27,12 +27,52 @@ export const useDocuments = () => {
 const DOCUMENTS_COLLECTION = 'documentation_documents';
 const COLLECTIONS_COLLECTION = 'documentation_collections';
 
-export const DocumentProvider = ({ children }) => {
-  const [documents, setDocuments] = useState([]);
-  const [collections, setCollections] = useState([]);
+export const DocumentProvider = ({ children, currentUserId = 'default-user' }) => {
+  const [allDocuments, setAllDocuments] = useState([]);
+  const [allCollections, setAllCollections] = useState([]);
   const [currentDocument, setCurrentDocument] = useState(null);
   const [currentCollection, setCurrentCollection] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Filter documents based on visibility and ownership
+  const documents = useMemo(() => {
+    console.log('Current User ID:', currentUserId);
+    const filtered = allDocuments.filter(doc => {
+      console.log('Document:', doc.id, 'visibility:', doc.visibility, 'createdBy:', doc.createdBy);
+
+      // Public documents are visible to everyone
+      if (doc.visibility === VISIBILITY_TYPES.PUBLIC) {
+        return true;
+      }
+
+      // Private documents only visible to creator
+      // If createdBy is missing, treat as private to current user for backward compatibility
+      if (doc.visibility === VISIBILITY_TYPES.PRIVATE || !doc.visibility) {
+        return doc.createdBy === currentUserId;
+      }
+
+      return false;
+    });
+    console.log('Filtered documents:', filtered.length, 'of', allDocuments.length);
+    return filtered;
+  }, [allDocuments, currentUserId]);
+
+  // Filter collections based on visibility and ownership
+  const collections = useMemo(() => {
+    return allCollections.filter(col => {
+      // Public collections are visible to everyone
+      if (col.visibility === VISIBILITY_TYPES.PUBLIC) {
+        return true;
+      }
+
+      // Private collections only visible to creator
+      if (col.visibility === VISIBILITY_TYPES.PRIVATE || !col.visibility) {
+        return col.createdBy === currentUserId;
+      }
+
+      return false;
+    });
+  }, [allCollections, currentUserId]);
 
   // Real-time listener for documents
   useEffect(() => {
@@ -51,7 +91,7 @@ export const DocumentProvider = ({ children }) => {
         snapshot.forEach((doc) => {
           docs.push({ id: doc.id, ...doc.data() });
         });
-        setDocuments(docs);
+        setAllDocuments(docs);
         setLoading(false);
       }, (error) => {
         console.error('Error fetching documents:', error);
@@ -80,7 +120,7 @@ export const DocumentProvider = ({ children }) => {
         snapshot.forEach((doc) => {
           cols.push({ id: doc.id, ...doc.data() });
         });
-        setCollections(cols);
+        setAllCollections(cols);
       }, (error) => {
         console.error('Error fetching collections:', error);
       });
@@ -102,14 +142,14 @@ export const DocumentProvider = ({ children }) => {
       collectionId,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      createdBy: 'current-user',
-      order: documents.length
+      createdBy: currentUserId,
+      order: allDocuments.length
     };
 
     if (!db) {
       // Local state only
       newDoc.id = generateId();
-      setDocuments(prev => [...prev, newDoc]);
+      setAllDocuments(prev => [...prev, newDoc]);
       setCurrentDocument(newDoc);
       return newDoc;
     }
@@ -131,11 +171,11 @@ export const DocumentProvider = ({ children }) => {
       console.error('Error creating document:', error);
       // Fallback to local
       newDoc.id = generateId();
-      setDocuments(prev => [...prev, newDoc]);
+      setAllDocuments(prev => [...prev, newDoc]);
       setCurrentDocument(newDoc);
       return newDoc;
     }
-  }, [documents.length]);
+  }, [allDocuments.length, currentUserId]);
 
   // Update document
   const updateDocument = useCallback(async (id, updates) => {
@@ -146,7 +186,7 @@ export const DocumentProvider = ({ children }) => {
 
     if (!db) {
       // Local state only
-      setDocuments(prev => prev.map(doc =>
+      setAllDocuments(prev => prev.map(doc =>
         doc.id === id ? { ...doc, ...updatedData } : doc
       ));
       if (currentDocument?.id === id) {
@@ -168,7 +208,7 @@ export const DocumentProvider = ({ children }) => {
     } catch (error) {
       console.error('Error updating document:', error);
       // Fallback to local
-      setDocuments(prev => prev.map(doc =>
+      setAllDocuments(prev => prev.map(doc =>
         doc.id === id ? { ...doc, ...updatedData } : doc
       ));
       if (currentDocument?.id === id) {
@@ -180,9 +220,9 @@ export const DocumentProvider = ({ children }) => {
   // Delete document
   const deleteDocument = useCallback(async (id) => {
     const deleteRecursiveLocal = (docId) => {
-      const children = documents.filter(doc => doc.parentId === docId);
+      const children = allDocuments.filter(doc => doc.parentId === docId);
       children.forEach(child => deleteRecursiveLocal(child.id));
-      setDocuments(prev => prev.filter(doc => doc.id !== docId));
+      setAllDocuments(prev => prev.filter(doc => doc.id !== docId));
     };
 
     if (!db) {
@@ -196,7 +236,7 @@ export const DocumentProvider = ({ children }) => {
 
     try {
       const deleteRecursive = async (docId) => {
-        const children = documents.filter(doc => doc.parentId === docId);
+        const children = allDocuments.filter(doc => doc.parentId === docId);
         for (const child of children) {
           await deleteRecursive(child.id);
         }
@@ -217,19 +257,20 @@ export const DocumentProvider = ({ children }) => {
         setCurrentDocument(null);
       }
     }
-  }, [documents, currentDocument]);
+  }, [allDocuments, currentDocument]);
 
   // Create collection
   const createCollection = useCallback(async () => {
     const newCollection = {
       ...DEFAULT_COLLECTION,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      createdBy: currentUserId
     };
 
     if (!db) {
       // Local state only
       newCollection.id = generateId();
-      setCollections(prev => [...prev, newCollection]);
+      setAllCollections(prev => [...prev, newCollection]);
       return newCollection;
     }
 
@@ -248,38 +289,48 @@ export const DocumentProvider = ({ children }) => {
       console.error('Error creating collection:', error);
       // Fallback to local
       newCollection.id = generateId();
-      setCollections(prev => [...prev, newCollection]);
+      setAllCollections(prev => [...prev, newCollection]);
       return newCollection;
     }
-  }, []);
+  }, [currentUserId]);
 
   // Update collection
   const updateCollection = useCallback(async (id, updates) => {
     if (!db) {
       // Local state only
-      setCollections(prev => prev.map(col =>
+      setAllCollections(prev => prev.map(col =>
         col.id === id ? { ...col, ...updates } : col
       ));
+      if (currentCollection?.id === id) {
+        setCurrentCollection(prev => ({ ...prev, ...updates }));
+      }
       return;
     }
 
     try {
       const collectionRef = doc(db, COLLECTIONS_COLLECTION, id);
       await updateDoc(collectionRef, updates);
+
+      if (currentCollection?.id === id) {
+        setCurrentCollection(prev => ({ ...prev, ...updates }));
+      }
     } catch (error) {
       console.error('Error updating collection:', error);
       // Fallback to local
-      setCollections(prev => prev.map(col =>
+      setAllCollections(prev => prev.map(col =>
         col.id === id ? { ...col, ...updates } : col
       ));
+      if (currentCollection?.id === id) {
+        setCurrentCollection(prev => ({ ...prev, ...updates }));
+      }
     }
-  }, []);
+  }, [currentCollection]);
 
   // Delete collection
   const deleteCollection = useCallback(async (id) => {
     const deleteLocal = () => {
-      setDocuments(prev => prev.filter(doc => doc.collectionId !== id));
-      setCollections(prev => prev.filter(col => col.id !== id));
+      setAllDocuments(prev => prev.filter(doc => doc.collectionId !== id));
+      setAllCollections(prev => prev.filter(col => col.id !== id));
     };
 
     if (!db) {
@@ -293,7 +344,7 @@ export const DocumentProvider = ({ children }) => {
 
     try {
       // Delete all documents in the collection first
-      const docsInCollection = documents.filter(doc => doc.collectionId === id);
+      const docsInCollection = allDocuments.filter(doc => doc.collectionId === id);
       for (const document of docsInCollection) {
         await deleteDocument(document.id);
       }
@@ -313,15 +364,8 @@ export const DocumentProvider = ({ children }) => {
         setCurrentCollection(null);
       }
     }
-  }, [documents, currentCollection, deleteDocument]);
+  }, [allDocuments, currentCollection, deleteDocument]);
 
-  // Share document
-  const shareDocument = useCallback((id, userIds, visibility = VISIBILITY_TYPES.SHARED) => {
-    updateDocument(id, {
-      visibility,
-      sharedWith: userIds
-    });
-  }, [updateDocument]);
 
   // Get document hierarchy (children)
   const getDocumentChildren = useCallback((parentId) => {
@@ -358,7 +402,6 @@ export const DocumentProvider = ({ children }) => {
     createCollection,
     updateCollection,
     deleteCollection,
-    shareDocument,
     getDocumentChildren,
     getRootDocuments,
     getCollectionDocuments

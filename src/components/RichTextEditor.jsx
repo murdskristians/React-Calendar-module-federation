@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react'
 import { createEditor, Editor, Transforms, Element as SlateElement, Range, Point } from 'slate';
 import { Slate, Editable, withReact, useSlate, ReactEditor } from 'slate-react';
 import { withHistory } from 'slate-history';
-import { FaBold, FaItalic, FaUnderline, FaCode, FaListUl, FaListOl, FaQuoteLeft, FaStrikethrough, FaLink, FaComment, FaImage, FaCheckSquare } from 'react-icons/fa';
+import { FaBold, FaItalic, FaUnderline, FaCode, FaListUl, FaListOl, FaQuoteLeft, FaStrikethrough, FaLink, FaComment, FaCheckSquare } from 'react-icons/fa';
 import './RichTextEditor.css';
 
 const RichTextEditor = ({ value, onChange, readOnly = false }) => {
@@ -91,14 +91,38 @@ const RichTextEditor = ({ value, onChange, readOnly = false }) => {
         if (anchor.offset === 0 && text.length === 0) {
           event.preventDefault();
 
-          // Delete the current list item first
-          Transforms.removeNodes(editor, { at: listItemPath });
-
-          // Insert a paragraph
-          Transforms.insertNodes(editor, {
-            type: 'paragraph',
-            children: [{ text: '' }],
+          // Find the parent list container
+          const [listMatch] = Editor.nodes(editor, {
+            at: listItemPath,
+            match: n => !Editor.isEditor(n) && SlateElement.isElement(n) &&
+                       ['numbered-list', 'bulleted-list', 'task-list'].includes(n.type),
           });
+
+          if (listMatch) {
+            const [listNode, listPath] = listMatch;
+
+            // Check if this is the only item in the list
+            if (listNode.children.length === 1) {
+              // Remove the entire list and insert a paragraph in its place
+              Transforms.removeNodes(editor, { at: listPath });
+              Transforms.insertNodes(editor, {
+                type: 'paragraph',
+                children: [{ text: '' }],
+              }, { at: listPath });
+            } else {
+              // Remove just the list item
+              Transforms.removeNodes(editor, { at: listItemPath });
+              // Insert a paragraph after the list
+              const nextPath = [...listPath];
+              nextPath[nextPath.length - 1] += 1;
+              Transforms.insertNodes(editor, {
+                type: 'paragraph',
+                children: [{ text: '' }],
+              }, { at: nextPath });
+              // Move selection to the new paragraph
+              Transforms.select(editor, nextPath);
+            }
+          }
 
           return;
         }
@@ -121,14 +145,38 @@ const RichTextEditor = ({ value, onChange, readOnly = false }) => {
         if (text.length === 0) {
           event.preventDefault();
 
-          // Remove the empty list item
-          Transforms.removeNodes(editor, { at: listItemPath });
-
-          // Insert a paragraph after the list
-          Transforms.insertNodes(editor, {
-            type: 'paragraph',
-            children: [{ text: '' }],
+          // Find the parent list container
+          const [listMatch] = Editor.nodes(editor, {
+            at: listItemPath,
+            match: n => !Editor.isEditor(n) && SlateElement.isElement(n) &&
+                       ['numbered-list', 'bulleted-list', 'task-list'].includes(n.type),
           });
+
+          if (listMatch) {
+            const [listNode, listPath] = listMatch;
+
+            // Check if this is the only item in the list
+            if (listNode.children.length === 1) {
+              // Remove the entire list and insert a paragraph in its place
+              Transforms.removeNodes(editor, { at: listPath });
+              Transforms.insertNodes(editor, {
+                type: 'paragraph',
+                children: [{ text: '' }],
+              }, { at: listPath });
+            } else {
+              // Remove just the list item
+              Transforms.removeNodes(editor, { at: listItemPath });
+              // Insert a paragraph after the list
+              const nextPath = [...listPath];
+              nextPath[nextPath.length - 1] += 1;
+              Transforms.insertNodes(editor, {
+                type: 'paragraph',
+                children: [{ text: '' }],
+              }, { at: nextPath });
+              // Move selection to the new paragraph
+              Transforms.select(editor, nextPath);
+            }
+          }
 
           return;
         }
@@ -498,16 +546,6 @@ const SlashCommandMenu = ({ editor, search, target, onClose }) => {
       shortcut: '',
       icon: <FaQuoteLeft />,
       action: () => insertBlock(editor, 'block-quote', target),
-    },
-    {
-      title: 'Image',
-      subtitle: '',
-      shortcut: '',
-      icon: <FaImage />,
-      action: () => {
-        onClose();
-        // Image upload would go here
-      },
     },
   ];
 

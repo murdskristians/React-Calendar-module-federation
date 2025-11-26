@@ -12,7 +12,6 @@ import {
   FaEllipsisV,
   FaGlobe,
   FaLock,
-  FaUserFriends,
   FaFileAlt
 } from 'react-icons/fa';
 
@@ -78,8 +77,6 @@ const DocumentSidebar = () => {
     switch (visibility) {
       case 'public':
         return <FaGlobe className="text-xs text-gray-400" title="Public" />;
-      case 'shared':
-        return <FaUserFriends className="text-xs text-gray-400" title="Shared" />;
       case 'private':
       default:
         return <FaLock className="text-xs text-gray-400" title="Private" />;
@@ -182,7 +179,10 @@ const DocumentSidebar = () => {
 
           <span
             className="flex-1 text-sm font-semibold truncate flex items-center gap-1.5"
-            onClick={() => setCurrentCollection(collection)}
+            onClick={() => {
+              setCurrentCollection(collection);
+              setCurrentDocument(null);
+            }}
           >
             <span>{collection.icon}</span>
             <span>{collection.name}</span>
