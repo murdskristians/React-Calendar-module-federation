@@ -19,28 +19,89 @@ const EventModal = ({
     location: '',
     description: '',
   });
+  const [titleError, setTitleError] = useState(false);
 
   const defaultCalendars = [
-    { id: 'personal', name: 'Personal', color: '#4285f4' },
+    { id: 'personal', name: 'Personal', color: '#3498DB' },
     { id: 'work', name: 'Work', color: '#0b8043' },
     { id: 'family', name: 'Family', color: '#8e24aa' },
   ];
 
   const displayCalendars = calendars.length > 0 ? calendars : defaultCalendars;
 
+  const formatDateTimeLocal = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  // Convert any date format to datetime-local string format (YYYY-MM-DDTHH:mm)
+  const toDateTimeLocalString = (dateValue) => {
+    if (!dateValue) return '';
+
+    // Already a string in correct format
+    if (typeof dateValue === 'string') {
+      // Convert "YYYY-MM-DD HH:mm" to "YYYY-MM-DDTHH:mm"
+      if (dateValue.includes(' ')) {
+        return dateValue.replace(' ', 'T');
+      }
+      // Already in ISO format with T
+      if (dateValue.includes('T')) {
+        return dateValue.substring(0, 16);
+      }
+      // Just a date, add default time
+      return `${dateValue}T00:00`;
+    }
+
+    // Temporal.ZonedDateTime or Temporal.PlainDateTime or Temporal.PlainDate
+    if (dateValue.year !== undefined) {
+      const year = dateValue.year;
+      const month = String(dateValue.month).padStart(2, '0');
+      const day = String(dateValue.day).padStart(2, '0');
+      const hour = String(dateValue.hour || 0).padStart(2, '0');
+      const minute = String(dateValue.minute || 0).padStart(2, '0');
+      return `${year}-${month}-${day}T${hour}:${minute}`;
+    }
+
+    // JavaScript Date object
+    if (dateValue instanceof Date) {
+      return formatDateTimeLocal(dateValue);
+    }
+
+    return '';
+  };
+
   useEffect(() => {
     if (event) {
       setFormData({
         title: event.title || '',
-        start: event.start || '',
-        end: event.end || '',
+        start: toDateTimeLocalString(event.start),
+        end: toDateTimeLocalString(event.end),
         allDay: event.allDay || false,
         calendarId: event.calendarId || 'personal',
         location: event.location || '',
         description: event.description || '',
       });
     } else if (selectedDateTime) {
-      const startDate = new Date(selectedDateTime);
+      // Handle Temporal.PlainDateTime from Schedule-X or string
+      let startDate;
+      if (typeof selectedDateTime === 'string') {
+        startDate = new Date(selectedDateTime);
+      } else if (selectedDateTime.year !== undefined) {
+        // It's a Temporal.PlainDateTime object
+        const year = selectedDateTime.year;
+        const month = selectedDateTime.month;
+        const day = selectedDateTime.day;
+        const hour = selectedDateTime.hour || 0;
+        const minute = selectedDateTime.minute || 0;
+        startDate = new Date(year, month - 1, day, hour, minute);
+      } else {
+        startDate = new Date();
+      }
+
       const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
       setFormData({
         title: '',
@@ -67,17 +128,11 @@ const EventModal = ({
     }
   }, [event, selectedDateTime, isOpen]);
 
-  const formatDateTimeLocal = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  };
-
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    if (name === 'title') {
+      setTitleError(false);
+    }
     setFormData((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
@@ -86,7 +141,10 @@ const EventModal = ({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.title.trim()) return;
+    if (!formData.title.trim()) {
+      setTitleError(true);
+      return;
+    }
 
     const eventData = {
       id: event?.id || String(Date.now()),
@@ -119,15 +177,18 @@ const EventModal = ({
     <div className="event-modal-overlay" onClick={onClose}>
       <div className="event-modal" onClick={(e) => e.stopPropagation()}>
         <div className="event-modal-header">
-          <input
-            type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            placeholder="Add title"
-            className="event-title-input"
-            autoFocus
-          />
+          <div className="title-input-wrapper">
+            <input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              placeholder="Add title"
+              className={`event-title-input ${titleError ? 'error' : ''}`}
+              autoFocus
+            />
+            {titleError && <span className="title-error-message">Title is required</span>}
+          </div>
           <button className="close-btn" onClick={onClose}>
             <FiX size={20} />
           </button>

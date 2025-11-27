@@ -92,6 +92,15 @@
   margin-right: 8px;
 }
 
+.menu-btn.active {
+  background: #e8f0fe;
+  color: #3498DB;
+}
+
+.menu-btn.active:hover {
+  background: #d3e3fd;
+}
+
 .logo {
   display: flex;
   align-items: center;
@@ -137,36 +146,81 @@
   margin: 0;
 }
 
-.view-selector {
-  display: flex;
-  border: 1px solid #dadce0;
-  border-radius: 4px;
-  overflow: hidden;
+/* View Dropdown (Google Calendar style) */
+.view-dropdown {
+  position: relative;
 }
 
-.view-btn {
-  padding: 8px 16px;
-  border: none;
+.view-dropdown-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
   background: #fff;
   color: #3c4043;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  border-right: 1px solid #dadce0;
-  transition: background 0.2s;
+  transition: background 0.2s, box-shadow 0.2s;
 }
 
-.view-btn:last-child {
-  border-right: none;
+.view-dropdown-btn:hover {
+  background: #f1f3f4;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.view-btn:hover {
+.view-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  min-width: 180px;
+  padding: 8px 0;
+  z-index: 1000;
+}
+
+.view-dropdown-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #3c4043;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.view-dropdown-item:hover {
   background: #f1f3f4;
 }
 
-.view-btn.active {
+.view-dropdown-item.active {
   background: #e8f0fe;
-  color: #1967d2;
+}
+
+.view-dropdown-check {
+  width: 24px;
+  color: #3498DB;
+  display: flex;
+  align-items: center;
+}
+
+.view-dropdown-label {
+  flex: 1;
+}
+
+.view-dropdown-shortcut {
+  color: #70757a;
+  font-size: 12px;
+  margin-left: 16px;
 }
 
 /* ==========================================
@@ -177,6 +231,7 @@
   display: flex;
   flex: 1;
   overflow: hidden;
+  position: relative;
 }
 
 /* ==========================================
@@ -190,6 +245,24 @@
   overflow-y: auto;
   flex-shrink: 0;
   background: #fff;
+  /* Smooth transition for width changes - both sidebar and main content animate together */
+  transition: width 0.2s ease-out, padding 0.2s ease-out, border-width 0.2s ease-out, opacity 0.2s ease-out;
+  opacity: 1;
+}
+
+/* Closed state - collapse width smoothly */
+.calendar-sidebar.closed {
+  width: 0;
+  padding: 0;
+  border-width: 0;
+  overflow: hidden;
+  opacity: 0;
+}
+
+/* Hide content when sidebar is collapsed to prevent text overflow */
+.calendar-sidebar.closed > * {
+  opacity: 0;
+  visibility: hidden;
 }
 
 .create-event-btn {
@@ -215,7 +288,7 @@
 }
 
 .create-event-btn svg {
-  color: #4285f4;
+  color: #3498DB;
 }
 
 /* Mini Calendar */
@@ -304,17 +377,88 @@
 }
 
 .date-cell.today {
-  background: #1a73e8;
+  background: #3498DB;
   color: #fff;
 }
 
 .date-cell.today:hover {
+  background: #e8f0fe;
+}
+
+.date-cell.selected {
+  background: #1a73e8;
+  color: #fff;
+  font-weight: 500;
+}
+
+.date-cell.selected:hover {
   background: #1557b0;
 }
 
-.date-cell.selected:not(.today) {
+/* If date is both today and selected, prioritize selected styling */
+.date-cell.today.selected {
+  background: #1a73e8;
+  color: #fff;
+  border: none;
+}
+
+.date-cell.today.selected:hover {
+  background: #1557b0;
+}
+
+/* Date Range Selection Styles */
+.date-cell.in-range {
   background: #e8f0fe;
-  color: #1a73e8;
+  color: #3498DB;
+  color: #1967d2;
+  border-radius: 0;
+}
+
+.date-cell.range-start {
+  background: #1a73e8;
+  color: #fff;
+  border-top-left-radius: 50%;
+  border-bottom-left-radius: 50%;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.date-cell.range-end {
+  background: #1a73e8;
+  color: #fff;
+  border-top-right-radius: 50%;
+  border-bottom-right-radius: 50%;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.date-cell.range-middle {
+  background: #e8f0fe;
+  color: #1967d2;
+  border-radius: 0;
+}
+
+.date-cell.in-range:hover {
+  background: #d2e3fc;
+}
+
+.date-cell.range-start:hover,
+.date-cell.range-end:hover {
+  background: #1557b0;
+}
+
+/* If date is both today and in range */
+.date-cell.today.in-range:not(.range-start):not(.range-end) {
+  background: #e8f0fe;
+  color: #1967d2;
+  border: 1px solid #1a73e8;
+}
+
+.date-cell.today.range-start,
+.date-cell.today.range-end {
+  background: #1a73e8;
+  color: #fff;
+  border: none;
 }
 
 /* Calendars Section */
@@ -384,18 +528,29 @@
   height: 100%;
 }
 
-/* Schedule-X Theme Overrides for Google Calendar look */
-.sx-calendar {
-  --sx-color-primary: #1a73e8 !important;
-  --sx-color-primary-container: #e8f0fe !important;
-  --sx-color-on-primary-container: #1a73e8 !important;
-  --sx-color-surface: #fff !important;
-  --sx-color-on-surface: #3c4043 !important;
-  --sx-color-surface-variant: #f1f3f4 !important;
-  --sx-color-on-surface-variant: #5f6368 !important;
-  --sx-color-outline: #dadce0 !important;
-  --sx-color-outline-variant: #e8eaed !important;
-  font-family: 'Google Sans', Roboto, Arial, sans-serif !important;
+/* Schedule-X Theme Overrides */
+/* Override :root CSS variables to use custom blue #3498DB */
+:root {
+  --sx-color-primary: #3498DB;
+  --sx-color-on-primary: #fff;
+  --sx-color-primary-container: #d6eaf8;
+  --sx-color-on-primary-container: #3498DB;
+  --sx-color-surface: #fff;
+  --sx-color-on-surface: #3c4043;
+  --sx-color-surface-variant: #f1f3f4;
+  --sx-color-on-surface-variant: #5f6368;
+  --sx-color-outline: #dadce0;
+  --sx-color-outline-variant: #e8eaed;
+}
+
+.sx__calendar-wrapper {
+  font-family: 'Google Sans', Roboto, Arial, sans-serif;
+}
+
+/* Hide Schedule-X built-in header/toolbar (we use our own custom header) */
+.sx__calendar-header,
+.sx__calendar-header-content {
+  display: none !important;
 }
 
 /* Time grid styling */
@@ -418,6 +573,58 @@
 .sx-current-time-indicator::before {
   background: #ea4335 !important;
   border-color: #ea4335 !important;
+}
+
+/* Selected Date Range Styles in Main Calendar */
+.sx-date-in-range,
+.sx-date-range-middle {
+  background: #e8f0fe !important;
+  color: #1967d2 !important;
+  border-radius: 0 !important;
+}
+
+.sx-date-range-start {
+  background: #1a73e8 !important;
+  color: #fff !important;
+  border-top-left-radius: 50% !important;
+  border-bottom-left-radius: 50% !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+.sx-date-range-end {
+  background: #1a73e8 !important;
+  color: #fff !important;
+  border-top-right-radius: 50% !important;
+  border-bottom-right-radius: 50% !important;
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+
+/* Week view date headers */
+.sx-week-grid-day__date.sx-date-in-range,
+.sx-week-grid-day__date.sx-date-range-middle {
+  background: #e8f0fe !important;
+  color: #1967d2 !important;
+}
+
+.sx-week-grid-day__date.sx-date-range-start,
+.sx-week-grid-day__date.sx-date-range-end {
+  background: #1a73e8 !important;
+  color: #fff !important;
+}
+
+/* Month view date cells */
+.sx-month-grid-day.sx-date-in-range,
+.sx-month-grid-day.sx-date-range-middle {
+  background: #e8f0fe !important;
+  color: #1967d2 !important;
+}
+
+.sx-month-grid-day.sx-date-range-start,
+.sx-month-grid-day.sx-date-range-end {
+  background: #1a73e8 !important;
+  color: #fff !important;
 }
 
 /* ==========================================
@@ -465,7 +672,7 @@
 }
 
 .event-title-input:focus {
-  border-bottom-color: #1a73e8;
+  border-bottom-color: #3498DB;
 }
 
 .event-title-input::placeholder {
@@ -527,7 +734,7 @@
 }
 
 .datetime-input:focus {
-  border-color: #1a73e8;
+  border-color: #3498DB;
 }
 
 .datetime-separator {
@@ -560,7 +767,7 @@
 .calendar-select:focus,
 .form-input:focus,
 .form-textarea:focus {
-  border-color: #1a73e8;
+  border-color: #3498DB;
 }
 
 .form-textarea {
@@ -605,7 +812,7 @@
   padding: 8px 16px;
   border: none;
   background: transparent;
-  color: #1a73e8;
+  color: #3498DB;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -619,7 +826,7 @@
 .save-btn {
   padding: 8px 24px;
   border: none;
-  background: #1a73e8;
+  background: #3498DB;
   color: #fff;
   font-size: 14px;
   font-weight: 500;
@@ -658,4 +865,39 @@
   .current-date {
     font-size: 18px;
   }
+}
+
+/* ==========================================
+   LOADING STATE
+   ========================================== */
+
+.calendar-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-spinner {
+  font-size: 16px;
+  color: #5f6368;
+}
+
+/* ==========================================
+   FORM VALIDATION
+   ========================================== */
+
+.title-input-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.event-title-input.error {
+  border-bottom-color: #d93025;
+}
+
+.title-error-message {
+  color: #d93025;
+  font-size: 12px;
+  margin-top: 4px;
 }

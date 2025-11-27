@@ -1,5 +1,5 @@
-import React from 'react';
-import { FiMenu, FiChevronLeft, FiChevronRight, FiSearch, FiSettings, FiHelpCircle } from 'react-icons/fi';
+import React, { useState, useRef, useEffect } from 'react';
+import { FiMenu, FiChevronLeft, FiChevronRight, FiSearch, FiSettings, FiChevronDown, FiCheck } from 'react-icons/fi';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -13,21 +13,46 @@ const CalendarHeader = ({
   onToggleSidebar,
   onNavigate,
   onToday,
+  sidebarOpen,
 }) => {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
   const date = selectedDate ? new Date(selectedDate) : new Date();
   const monthYear = `${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
 
   const views = [
-    { id: 'day', label: 'Day' },
-    { id: 'week', label: 'Week' },
-    { id: 'month-grid', label: 'Month' },
-    { id: 'month-agenda', label: 'Agenda' },
+    { id: 'day', label: 'Day', shortcut: 'D' },
+    { id: 'week', label: 'Week', shortcut: 'W' },
+    { id: 'month-grid', label: 'Month', shortcut: 'M' },
+    { id: 'month-agenda', label: 'Schedule', shortcut: 'A' },
   ];
+
+  const currentViewLabel = views.find(v => v.id === currentView)?.label || 'Week';
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleViewSelect = (viewId) => {
+    onViewChange(viewId);
+    setDropdownOpen(false);
+  };
 
   return (
     <header className="calendar-header">
       <div className="header-left">
-        <button className="icon-btn menu-btn" onClick={onToggleSidebar}>
+        <button
+          className={`icon-btn menu-btn ${sidebarOpen ? 'active' : ''}`}
+          onClick={onToggleSidebar}
+        >
           <FiMenu size={22} />
         </button>
 
@@ -57,21 +82,37 @@ const CalendarHeader = ({
           <FiSearch size={20} />
         </button>
 
-        <div className="view-selector">
-          {views.map((view) => (
-            <button
-              key={view.id}
-              className={`view-btn ${currentView === view.id ? 'active' : ''}`}
-              onClick={() => onViewChange(view.id)}
-            >
-              {view.label}
-            </button>
-          ))}
-        </div>
-
         <button className="icon-btn">
           <FiSettings size={20} />
         </button>
+
+        <div className="view-dropdown" ref={dropdownRef}>
+          <button
+            className="view-dropdown-btn"
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+          >
+            {currentViewLabel}
+            <FiChevronDown size={16} />
+          </button>
+
+          {dropdownOpen && (
+            <div className="view-dropdown-menu">
+              {views.map((view) => (
+                <button
+                  key={view.id}
+                  className={`view-dropdown-item ${currentView === view.id ? 'active' : ''}`}
+                  onClick={() => handleViewSelect(view.id)}
+                >
+                  <span className="view-dropdown-check">
+                    {currentView === view.id && <FiCheck size={16} />}
+                  </span>
+                  <span className="view-dropdown-label">{view.label}</span>
+                  <span className="view-dropdown-shortcut">{view.shortcut}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
