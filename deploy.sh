@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Deploy documentation-module to Firebase
+# Deploy calendar-module to Firebase
 # Usage: ./deploy.sh [test|prod]
 
 set -e  # Exit on error
 
-MODULE_NAME="documentation-module"
+MODULE_NAME="calendar-module"
 TEST_SITE="module-$MODULE_NAME"
 PROD_SITE="hotcode-module-$MODULE_NAME"
 
@@ -69,7 +69,7 @@ echo ""
 
 # Deploy to Firebase
 echo "🚀 Deploying to Firebase Hosting..."
-firebase deploy --only hosting:documentation-module
+firebase deploy --only hosting:calendar-module
 
 echo ""
 echo "🎉 Deployment to $ENV complete!"

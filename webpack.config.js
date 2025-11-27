@@ -58,7 +58,7 @@ module.exports = (env, argv) => {
     plugins: [
       new webpack.DefinePlugin(envKeys),
       new ModuleFederationPlugin({
-        name: 'documentationModule',
+        name: 'calendarModule',
         filename: 'remoteEntry.js',
         exposes: {
           './App': './src/App',

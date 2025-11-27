@@ -1,9 +1,9 @@
-# Documentation Module
+# Calendar Module
 
-This module was created from the default-module template and implements a full-featured documentation management system similar to Outline.
+This module was created from the default-module template and implements a calendar management system for scheduling and events.
 
 ## Cloning/Renaming This Module
-When creating a new module from this template, replace all `documentation-module` references with the new module name.
+When creating a new module from this template, replace all `calendar-module` references with the new module name.
 
 1) Choose identifiers
    - Module name: `your-module-name`.

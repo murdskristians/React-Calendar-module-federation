@@ -1,7 +1,7 @@
 {
-  "name": "documentation-module",
+  "name": "calendar-module",
   "version": "1.0.0",
-  "description": "Documentation Module - Document management system with hierarchical structure, sharing and permissions",
+  "description": "Calendar Module - Calendar management system for scheduling and events",
   "scripts": {
     "start": "webpack serve --mode development",
     "start:test": "webpack serve --mode development --env ENV_FILE=.env.test",
