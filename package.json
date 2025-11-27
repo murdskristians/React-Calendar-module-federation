@@ -10,13 +10,22 @@
     "build:prod": "webpack --mode production --env ENV_FILE=.env.production"
   },
   "dependencies": {
+    "@schedule-x/calendar": "^3.4.2",
+    "@schedule-x/current-time": "^3.4.2",
+    "@schedule-x/drag-and-drop": "^3.4.2",
+    "@schedule-x/event-modal": "^3.4.2",
+    "@schedule-x/events-service": "^3.4.2",
+    "@schedule-x/react": "^3.4.0",
+    "@schedule-x/resize": "^3.4.2",
+    "@schedule-x/theme-default": "^3.4.2",
     "firebase": "^12.6.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.0.1",
     "slate": "^0.102.0",
     "slate-history": "^0.100.0",
-    "slate-react": "^0.102.0"
+    "slate-react": "^0.102.0",
+    "temporal-polyfill": "^0.3.0"
   },
   "devDependencies": {
     "@babel/core": "^7.23.0",
