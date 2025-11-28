@@ -61,11 +61,11 @@ module.exports = (env, argv) => {
         name: 'calendarModule',
         filename: 'remoteEntry.js',
         exposes: {
-          './App': './src/App',
+          './App': './src/AppWrapper',
         },
         shared: {
-          react: { singleton: true, requiredVersion: '^18.2.0' },
-          'react-dom': { singleton: true, requiredVersion: '^18.2.0' },
+          react: { singleton: true, eager: true, requiredVersion: '^18.2.0' },
+          'react-dom': { singleton: true, eager: true, requiredVersion: '^18.2.0' },
         },
       }),
       new HtmlWebpackPlugin({

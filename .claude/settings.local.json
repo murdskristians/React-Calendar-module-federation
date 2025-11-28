@@ -4,7 +4,8 @@
       "Bash(npm start)",
       "Bash(npm install:*)",
       "Bash(npx kill-port:*)",
-      "Bash(del \"c:\\Users\\Kristians\\Desktop\\CHRIS\\React-Calendar-module-federation\\nul\")"
+      "Bash(del \"c:\\Users\\Kristians\\Desktop\\CHRIS\\React-Calendar-module-federation\\nul\")",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
